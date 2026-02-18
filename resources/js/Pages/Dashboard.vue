@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { router, Link } from '@inertiajs/vue3';
 import { Head } from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -18,6 +18,9 @@ const officeUuid = ref('');
 const offices = ref([]);
 const officesLoading = ref(false);
 const sidebarOpen = ref(false);
+const showLogoutModal = ref(false);
+const dashboardOpen = ref(true);
+
 
 // Pagination
 const PAGE_SIZE = 20;
@@ -148,7 +151,13 @@ const switchTab = (tab) => {
     }
 };
 
-const logout = () => { router.post('/logout'); };
+const logout = () => {
+    showLogoutModal.value = true;
+};
+
+const confirmLogout = () => {
+    router.post('/logout');
+};
 
 // ─── Filtered + paginated ────────────────────────────────────────────────────
 // ─── Filtered + paginated ────────────────────────────────────────────────────
@@ -221,31 +230,61 @@ onMounted(() => {
         <aside class="sidebar" :class="{ 'sidebar-open': sidebarOpen }">
             <div class="sidebar-header">
                 <div class="sidebar-logo">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
-                    </svg>
+                    <img src="/images/logo.png" alt="Bayambang Logo" @error="$event.target.style.display='none'; $event.target.nextElementSibling.style.display='flex'" />
+                    <div class="logo-fallback">B</div>
                 </div>
                 <div>
-                    <h2 class="sidebar-title">Benesystem</h2>
-                    <p class="sidebar-sub">Bayambang LGU</p>
+                    <div class="sidebar-title">Benesystem</div>
+                    <div class="sidebar-sub">Bayambang LGU</div>
                 </div>
             </div>
 
             <nav class="sidebar-nav">
-                <button class="nav-item" :class="{ active: activeTab === 'permanent' }" @click="switchTab('permanent')" id="nav-permanent">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M4.5 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM14.25 8.625a3.375 3.375 0 116.75 0 3.375 3.375 0 01-6.75 0zM1.5 19.125a7.125 7.125 0 0114.25 0v.003l-.001.119a.75.75 0 01-.363.63 13.067 13.067 0 01-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 01-.364-.63l-.001-.122zM17.25 19.128l-.001.144a2.25 2.25 0 01-.233.96 10.088 10.088 0 005.06-1.01.75.75 0 00.42-.643 4.875 4.875 0 00-6.957-4.611 8.586 8.586 0 011.71 5.157v.003z" />
+                <button class="nav-item justify-between" @click="dashboardOpen = !dashboardOpen">
+                    <div class="flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z" />
+                            <path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z" />
+                        </svg>
+                        Dashboard
+                    </div>
+                    <svg class="chevron" :class="{ 'rotate-180': dashboardOpen }" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                        <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 01-1.06 0l-7.5-7.5a.75.75 0 011.06-1.06L12 14.69l6.97-6.97a.75.75 0 111.06 1.06l-7.5 7.5z" clip-rule="evenodd" />
                     </svg>
-                    Permanent Employees
                 </button>
 
-                <button class="nav-item" :class="{ active: activeTab === 'all' }" @click="switchTab('all')" id="nav-all">
+                <div v-show="dashboardOpen" class="nav-sub-group">
+                    <button 
+                        class="nav-subitem" 
+                        :class="{ active: activeTab === 'permanent' }"
+                        @click="switchTab('permanent')"
+                    >
+                        Permanent Employees
+                    </button>
+                    <button 
+                        class="nav-subitem" 
+                        :class="{ active: activeTab === 'all' }"
+                        @click="switchTab('all')"
+                    >
+                        All Employees
+                    </button>
+                </div>
+
+                <div class="my-2 border-t border-slate-700/50 mx-4"></div>
+
+                <Link v-if="$page.props.auth.user?.roles?.some(r => ['Super Admin', 'Admin'].includes(r.name))" :href="route('users.index')" class="nav-item">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                        <path fill-rule="evenodd" d="M8.25 6.75a3.75 3.75 0 117.5 0 3.75 3.75 0 01-7.5 0zM15.75 9.75a3 3 0 116 0 3 3 0 01-6 0zM2.25 9.75a3 3 0 116 0 3 3 0 01-6 0zM6.31 15.117A6.745 6.745 0 0112 12a6.745 6.745 0 016.709 7.498.75.75 0 01-.372.568A12.696 12.696 0 0112 21.75c-2.305 0-4.47-.612-6.337-1.684a.75.75 0 01-.372-.568 6.787 6.787 0 011.019-4.38z" clip-rule="evenodd" />
-                        <path d="M5.082 14.254a8.287 8.287 0 00-1.308 5.135 9.687 9.687 0 01-1.764-.44l-.115-.04a.563.563 0 01-.373-.487l-.01-.121a3.75 3.75 0 013.57-4.047zM20.226 19.389a8.287 8.287 0 00-1.308-5.135 3.75 3.75 0 013.57 4.047l-.01.121a.563.563 0 01-.373.486l-.115.04c-.567.2-1.156.349-1.764.441z" />
+                        <path fill-rule="evenodd" d="M18.685 19.097A9.723 9.723 0 0021.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 003.065 7.097A9.716 9.716 0 0012 21.75a9.716 9.716 0 006.685-2.653zm-12.54-1.285A7.486 7.486 0 0112 15a7.486 7.486 0 015.855 2.812A8.224 8.224 0 0112 20.25a8.224 8.224 0 01-5.855-2.438zM15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" clip-rule="evenodd" />
                     </svg>
-                    All Employees (by Office)
-                </button>
+                    User Management
+                </Link>
+
+                <Link href="/offices" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 6.75A.75.75 0 013.75 6h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 6.75zM3 12a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 12zm0 5.25a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75z" clip-rule="evenodd" />
+                    </svg>
+                    Offices
+                </Link>
             </nav>
 
             <div class="sidebar-footer">
@@ -499,29 +538,46 @@ onMounted(() => {
                 </div>
             </div>
         </main>
+
+        <!-- Logout Confirmation Modal -->
+        <div v-if="showLogoutModal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <h3>Sign out?</h3>
+                <p>Are you sure you want to sign out of Benesystem?</p>
+                <div class="modal-actions">
+                    <button class="btn-cancel" @click="showLogoutModal = false">Cancel</button>
+                    <button class="btn-confirm" @click="confirmLogout">Sign out</button>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-.app-shell {
-    font-family: 'Inter', sans-serif;
+/* ── Layout ──────────────────────────────────────────── */
+.dashboard-layout {
     display: flex;
     min-height: 100vh;
     background: #f1f5f9;
+    font-family: 'Inter', sans-serif;
 }
 
 /* ── Sidebar ─────────────────────────────────────────── */
 .sidebar {
     width: 260px;
-    background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 100%);
+    background: linear-gradient(180deg, #0f172a 0%, #1e3a8a 100%);
+    color: white;
     display: flex;
     flex-direction: column;
     position: fixed;
-    top: 0; left: 0; bottom: 0;
+    top: 0; bottom: 0; left: 0;
     z-index: 100;
     transition: transform 0.3s ease;
 }
@@ -531,27 +587,42 @@ onMounted(() => {
     align-items: center;
     gap: 0.75rem;
     padding: 1.5rem 1.25rem;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
 .sidebar-logo {
-    width: 40px; height: 40px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    border-radius: 10px;
+    width: 44px; height: 44px;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
+    position: relative;
+    background: transparent;
+    box-shadow: none;
 }
-.sidebar-logo svg { width: 22px; height: 22px; color: white; }
+.sidebar-logo img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+.logo-fallback {
+    display: none;
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    border-radius: 8px;
+    align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 1.2rem;
+    position: absolute; inset: 0;
+}
 
-.sidebar-title { font-size: 1rem; font-weight: 700; color: white; }
-.sidebar-sub   { font-size: 0.7rem; color: rgba(255,255,255,0.4); margin-top: 1px; }
+.sidebar-title { font-size: 1rem; font-weight: 700; color: white; letter-spacing: 0.01em; }
+.sidebar-sub   { font-size: 0.7rem; color: rgba(255,255,255,0.6); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
 
 .sidebar-nav {
     flex: 1;
     padding: 1rem 0.75rem;
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.35rem;
 }
 
 .nav-item {
@@ -559,10 +630,10 @@ onMounted(() => {
     align-items: center;
     gap: 0.75rem;
     padding: 0.75rem 1rem;
-    border-radius: 10px;
+    border-radius: 8px;
     border: none;
     background: transparent;
-    color: rgba(255,255,255,0.55);
+    color: rgba(255,255,255,0.7);
     font-size: 0.875rem;
     font-weight: 500;
     font-family: 'Inter', sans-serif;
@@ -572,16 +643,56 @@ onMounted(() => {
     width: 100%;
 }
 .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
-.nav-item:hover { background: rgba(255,255,255,0.07); color: white; }
+.nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
 .nav-item.active {
-    background: rgba(99, 102, 241, 0.25);
-    color: #a5b4fc;
-    border: 1px solid rgba(99, 102, 241, 0.3);
+    background: rgba(59, 130, 246, 0.2); /* Blue-500/20 */
+    color: #93c5fd; /* Blue-300 */
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    font-weight: 600;
+}
+.justify-between { justify-content: space-between; }
+
+.nav-sub-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding-left: 1rem;
+    margin-top: 0.25rem;
+    margin-bottom: 0.5rem;
+    position: relative;
+}
+.nav-sub-group::before {
+    content: ''; position: absolute; left: 1.15rem; top: 0; bottom: 0;
+    width: 2px; background: rgba(255,255,255,0.1);
+}
+
+.nav-subitem {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem 0.5rem 1.25rem;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: rgba(255,255,255,0.6);
+    font-size: 0.8rem;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    width: 100%;
+}
+.nav-subitem:hover { color: white; background: rgba(255,255,255,0.05); }
+.nav-subitem.active {
+    color: #60a5fa; /* Blue-400 */
+    font-weight: 600;
+    background: rgba(59, 130, 246, 0.15);
 }
 
 .sidebar-footer {
     padding: 1rem 1.25rem;
-    border-top: 1px solid rgba(255,255,255,0.08);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    background: rgba(0,0,0,0.1);
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -591,23 +702,24 @@ onMounted(() => {
 
 .user-avatar {
     width: 34px; height: 34px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    background: linear-gradient(135deg, #2563eb, #0ea5e9);
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-size: 0.8rem; font-weight: 700; color: white;
     flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,0.1);
 }
 
 .user-name  { font-size: 0.8rem; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-role  { font-size: 0.7rem; color: rgba(255,255,255,0.4); }
+.user-role  { font-size: 0.7rem; color: rgba(255,255,255,0.5); }
 
 .logout-btn {
-    background: rgba(255,255,255,0.07);
+    background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 8px;
     padding: 0.4rem;
     cursor: pointer;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,255,255,0.6);
     display: flex; align-items: center;
     transition: all 0.2s;
     flex-shrink: 0;
@@ -634,18 +746,19 @@ onMounted(() => {
     position: sticky;
     top: 0;
     z-index: 50;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
 }
 
 .hamburger { display: none; background: none; border: none; cursor: pointer; color: #64748b; padding: 0.25rem; }
 .hamburger svg { width: 22px; height: 22px; }
 
 .topbar-title { flex: 1; }
-.topbar-title h1 { font-size: 1.1rem; font-weight: 700; color: #0f172a; }
-.topbar-title p  { font-size: 0.75rem; color: #94a3b8; margin-top: 1px; }
+.topbar-title h1 { font-size: 1.125rem; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; }
+.topbar-title p  { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
 
 .badge {
-    background: #ede9fe;
-    color: #6d28d9;
+    background: #dbeafe; /* Blue-100 */
+    color: #1e40af;      /* Blue-800 */
     font-size: 0.75rem;
     font-weight: 600;
     padding: 0.3rem 0.75rem;
@@ -684,7 +797,7 @@ onMounted(() => {
     outline: none;
     transition: border-color 0.2s;
 }
-.office-input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+.office-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
 
 .office-select {
     appearance: none;
@@ -713,7 +826,7 @@ onMounted(() => {
     transition: all 0.2s;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
-.search-input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+.search-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
 
 /* ── Error ───────────────────────────────────────────── */
 .error-banner {
@@ -765,7 +878,7 @@ onMounted(() => {
 }
 .empty-state svg { width: 48px; height: 48px; opacity: 0.4; }
 .empty-state p   { font-size: 0.9rem; text-align: center; }
-.empty-state strong { color: #6366f1; }
+.empty-state strong { color: #3b82f6; }
 
 /* ── Table ───────────────────────────────────────────── */
 .table-wrapper {
@@ -815,7 +928,7 @@ onMounted(() => {
     flex-shrink: 0;
     letter-spacing: 0.5px;
 }
-.avatar-male   { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+.avatar-male   { background: linear-gradient(135deg, #3b82f6, #0ea5e9); }
 .avatar-female { background: linear-gradient(135deg, #ec4899, #f43f5e); }
 
 .avatar-img {
@@ -847,10 +960,10 @@ onMounted(() => {
     font-weight: 600;
     text-transform: capitalize;
 }
-.sex-male   { background: #ede9fe; color: #6d28d9; }
+.sex-male   { background: #dbeafe; color: #1e40af; }
 .sex-female { background: #fce7f3; color: #be185d; }
 
-.email-cell { color: #6366f1; font-size: 0.8rem; }
+.email-cell { color: #3b82f6; font-size: 0.8rem; }
 
 /* ── Pagination ──────────────────────────────────────── */
 .pagination {
@@ -894,7 +1007,7 @@ onMounted(() => {
 .page-btn:hover:not(:disabled):not(.page-active) { background: #f8fafc; border-color: #cbd5e1; color: #0f172a; }
 .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .page-btn.page-active {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
     border-color: transparent;
     color: white;
     font-weight: 700;
@@ -1035,7 +1148,7 @@ onMounted(() => {
     border-color: #cbd5e1;
 }
 .office-card.is-open {
-    border-color: #818cf8; /* Indigo-400 */
+    border-color: #3b82f6; /* Blue-500 */
     box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
 }
 
@@ -1056,8 +1169,8 @@ onMounted(() => {
 
 .office-icon-bg {
     width: 42px; height: 42px;
-    background: #e0e7ff; /* Indigo-100 */
-    color: #4f46e5;      /* Indigo-600 */
+    background: #dbeafe; /* Blue-100 */
+    color: #2563eb;      /* Blue-600 */
     border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
@@ -1074,7 +1187,7 @@ onMounted(() => {
     width: 20px; height: 20px; color: #94a3b8;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.rotate-180 { transform: rotate(180deg); color: #4f46e5; }
+.rotate-180 { transform: rotate(180deg); color: #2563eb; }
 
 .badge-sm {
     font-size: 0.75rem; font-weight: 600;
@@ -1103,4 +1216,69 @@ onMounted(() => {
 .sm-avatar { width: 28px; height: 28px; font-size: 0.6rem; }
 .border-0 { border: none !important; }
 .shadow-none { box-shadow: none !important; }
+
+/* ── Modal ───────────────────────────────────────────── */
+.modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    width: 90%; max-width: 340px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    text-align: center;
+    animation: scaleIn 0.2s ease-out;
+}
+
+.modal-icon {
+    width: 48px; height: 48px;
+    background: #fee2e2; color: #ef4444; /* Red-100, Red-500 */
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem auto;
+}
+.modal-icon svg { width: 24px; height: 24px; }
+
+.modal-content h3 {
+    font-size: 1.125rem; font-weight: 700; color: #0f172a;
+    margin-bottom: 0.5rem;
+}
+
+.modal-content p {
+    font-size: 0.875rem; color: #64748b;
+    margin-bottom: 1.5rem; line-height: 1.5;
+}
+
+.modal-actions {
+    display: flex; gap: 0.75rem;
+}
+
+.modal-actions button {
+    flex: 1;
+    padding: 0.625rem;
+    border-radius: 8px;
+    font-size: 0.875rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+    font-family: inherit;
+}
+
+.btn-cancel {
+    background: white; border: 1px solid #e2e8f0; color: #475569;
+}
+.btn-cancel:hover { background: #f8fafc; border-color: #cbd5e1; color: #0f172a; }
+
+.btn-confirm {
+    background: #ef4444; border: 1px solid #ef4444; color: white;
+}
+.btn-confirm:hover { background: #dc2626; border-color: #dc2626; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.25); }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 </style>
