@@ -18,3 +18,6 @@ Route::middleware(\App\Http\Middleware\ApiAuthenticated::class)->group(function 
     Route::get('/api-proxy/employees/{officeUuid}', [EmployeeController::class, 'allEmployees'])->name('employees.all');
     Route::get('/api-proxy/permanent-employees', [EmployeeController::class, 'permanentEmployees'])->name('employees.permanent');
 });
+
+//Iloveyou pia
+
