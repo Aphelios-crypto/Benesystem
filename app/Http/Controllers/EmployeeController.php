@@ -93,4 +93,38 @@ class EmployeeController extends Controller
             'body'   => $response->json(),
         ], $response->status());
     }
+
+    /**
+     * Get list of offices
+     */
+    public function offices(Request $request)
+    {
+        $token = $this->getToken();
+        $url = self::API_BASE . '/offices';
+
+        Log::debug('[EmployeeController] offices called', [
+            'url'        => $url,
+            'has_token'  => !empty($token),
+            'token_preview' => $token ? substr($token, 0, 20) . '...' : null,
+        ]);
+
+        $response = Http::withToken($token)
+            ->accept('application/json')
+            ->get($url);
+
+        Log::debug('[EmployeeController] offices response', [
+            'status'  => $response->status(),
+            // 'body'    => $response->body(), // Too verbose if many offices
+        ]);
+
+        if ($response->successful()) {
+            return response()->json($response->json());
+        }
+
+        return response()->json([
+            'error'  => 'Failed to fetch offices',
+            'status' => $response->status(),
+            'body'   => $response->json(),
+        ], $response->status());
+    }
 }
